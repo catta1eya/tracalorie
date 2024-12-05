@@ -53,17 +53,17 @@ class CalorieTracker {
   // Private methods //
 
   _displayCaloriesTotal() {
-    const totalCaloriesEl = document.getElementById("calories-total");
+    const totalCaloriesEl = document.querySelector("#calories-total");
     totalCaloriesEl.innerHTML = this._totalCalories;
   }
 
   _displayCaloriesLimit() {
-    const calorieLimitEl = document.getElementById("calories-limit");
+    const calorieLimitEl = document.querySelector("#calories-limit");
     calorieLimitEl.innerHTML = this._calorieLimit;
   }
 
   _displayCaloriesConsumed() {
-    const caloriesConsumedEl = document.getElementById("calories-consumed");
+    const caloriesConsumedEl = document.querySelector("#calories-consumed");
 
     const consumed = this._meals.reduce(
       (total, meal) => total + meal.calories,
@@ -74,7 +74,7 @@ class CalorieTracker {
   }
 
   _displayCaloriesBurned() {
-    const caloriesBurnedEl = document.getElementById("calories-burned");
+    const caloriesBurnedEl = document.querySelector("#calories-burned");
 
     const burned = this._workouts.reduce(
       (total, workout) => total + workout.calories,
@@ -85,8 +85,8 @@ class CalorieTracker {
   }
 
   _displayCaloriesRemaining() {
-    const caloriesRemainingEl = document.getElementById("calories-remaining");
-    const progressEl = document.getElementById("calorie-progress");
+    const caloriesRemainingEl = document.querySelector("#calories-remaining");
+    const progressEl = document.querySelector("#calorie-progress");
     const remaining = this._calorieLimit - this._totalCalories;
     caloriesRemainingEl.innerHTML = remaining;
 
@@ -110,14 +110,14 @@ class CalorieTracker {
   }
 
   _displayCaloriesProgress() {
-    const progressEl = document.getElementById("calorie-progress");
+    const progressEl = document.querySelector("#calorie-progress");
     const percentage = (this._totalCalories / this._calorieLimit) * 100;
     const width = Math.min(percentage, 100);
     progressEl.style.width = `${width}%`;
   }
 
   _displayNewMeal(meal) {
-    const mealsEl = document.getElementById("meal-items");
+    const mealsEl = document.querySelector("#meal-items");
     const mealEl = document.createElement("div");
     mealEl.classList.add("card", "my-2");
     mealEl.setAttribute("data-id", meal.id);
@@ -139,7 +139,7 @@ class CalorieTracker {
   }
 
   _displayNewWorkout(workout) {
-    const workoutsEl = document.getElementById("workout-items");
+    const workoutsEl = document.querySelector("#workout-items");
     const workoutEl = document.createElement("div");
     workoutEl.classList.add("card", "my-2");
     workoutEl.setAttribute("data-id", workout.id);
@@ -190,26 +190,34 @@ class App {
     this._tracker = new CalorieTracker();
 
     document
-      .getElementById("meal-form")
+      .querySelector("#meal-form")
       .addEventListener("submit", this._newItem.bind(this, "meal"));
     document
-      .getElementById("workout-form")
+      .querySelector("#workout-form")
       .addEventListener("submit", this._newItem.bind(this, "workout"));
 
     document
-      .getElementById("meal-items")
+      .querySelector("#meal-items")
       .addEventListener("click", this._removeItem.bind(this, "meal"));
 
     document
-      .getElementById("workout-items")
+      .querySelector("#workout-items")
       .addEventListener("click", this._removeItem.bind(this, "workout"));
+
+    document
+      .querySelector("#filter-meals")
+      .addEventListener("keyup", this._filterItems.bind(this, "meal"));
+
+    document
+      .querySelector("#filter-workouts")
+      .addEventListener("keyup", this._filterItems.bind(this, "workout"));
   }
 
   _newItem(type, e) {
     e.preventDefault();
 
-    const name = document.getElementById(`${type}-name`);
-    const calories = document.getElementById(`${type}-calories`);
+    const name = document.querySelector(`#${type}-name`);
+    const calories = document.querySelector(`#${type}-calories`);
 
     // Validate inputs
 
@@ -231,7 +239,7 @@ class App {
     name.value = "";
     calories.value = "";
 
-    const collapseItem = document.getElementById(`collapse-${type}`);
+    const collapseItem = document.querySelector(`#collapse-${type}`);
     const bsCollapse = new bootstrap.Collapse(collapseItem, { toggle: true });
   }
 
@@ -250,6 +258,20 @@ class App {
         e.target.closest(".card").remove();
       }
     }
+  }
+
+  _filterItems(type, e) {
+    const term = e.target.value.toLowerCase();
+
+    document.querySelectorAll(`#${type}-items .card`).forEach((item) => {
+      const name = item.firstElementChild.firstElementChild.textContent;
+
+      if (name.toLowerCase().indexOf(term) !== -1) {
+        item.style.display = "block";
+      } else {
+        item.style.display = "none";
+      }
+    });
   }
 }
 
