@@ -2,8 +2,8 @@ class CalorieTracker {
   constructor() {
     this._calorieLimit = Storage.getCalorieLimit();
     this._totalCalories = Storage.getTotalCalories();
-    this._meals = [];
-    this._workouts = [];
+    this._meals = Storage.getMeals();
+    this._workouts = Storage.getWorkouts();
 
     this._displayCaloriesLimit();
     this._displayCaloriesTotal();
@@ -16,6 +16,7 @@ class CalorieTracker {
   // Public methods/API //
   addMeal(meal) {
     this._meals.push(meal);
+    Storage.saveMeal(meal);
     this._totalCalories += meal.calories;
     Storage.updateCalories(this._totalCalories);
     this._displayNewMeal(meal);
@@ -24,6 +25,7 @@ class CalorieTracker {
 
   addWorkout(workout) {
     this._workouts.push(workout);
+    Storage.saveWorkout(workout);
     this._totalCalories -= workout.calories;
     Storage.updateCalories(this._totalCalories);
     this._displayNewWorkout(workout);
@@ -66,6 +68,11 @@ class CalorieTracker {
     Storage.setCalorieLimit(limit);
     this._displayCaloriesLimit();
     this._render();
+  }
+
+  loadItems() {
+    this._meals.forEach((meal) => this._displayNewMeal(meal));
+    this._workouts.forEach((workout) => this._displayNewWorkout(workout));
   }
 
   // Private methods //
@@ -233,12 +240,50 @@ class Storage {
   static updateCalories(calories) {
     localStorage.setItem("totalCalories", calories);
   }
+
+  static getMeals() {
+    let meals;
+    if (localStorage.getItem("meals") === null) {
+      meals = [];
+    } else {
+      meals = JSON.parse(localStorage.getItem("meals"));
+    }
+
+    return meals;
+  }
+
+  static saveMeal(meal) {
+    const meals = this.getMeals();
+    meals.push(meal);
+    localStorage.setItem("meals", JSON.stringify(meals));
+  }
+
+  static getWorkouts() {
+    let workouts;
+    if (localStorage.getItem("workouts") === null) {
+      workouts = [];
+    } else {
+      workouts = JSON.parse(localStorage.getItem("workouts"));
+    }
+
+    return workouts;
+  }
+
+  static saveWorkout(workout) {
+    const workouts = this.getWorkouts();
+    workouts.push(workout);
+    localStorage.setItem("workouts", JSON.stringify(workouts));
+  }
 }
 
 class App {
   constructor() {
     this._tracker = new CalorieTracker();
+    this._loadEventListeners();
+    this._tracker.loadItems();
+  }
 
+  _loadEventListeners() {
     document
       .querySelector("#meal-form")
       .addEventListener("submit", this._newItem.bind(this, "meal"));
